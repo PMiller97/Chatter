@@ -9,18 +9,51 @@
 <p>
     @Html.ActionLink("Create New", "Create")
 </p>
+<section id="postSection"></section>
 
-<div id="response"></div>
-<button id="getChats" class="btn btn-primary">Get Chats</button>
+<section id="chatSection">
+
+
+    <button id="getChats" class="btn btn-primary">Get Chats</button>
+
+</section>
+
 
 @section Scripts {
     <script>
-        $("#getChats").click(function(){
-            $.get("@Url.Action("TestJson","Chats")", function (serverResponse) {
-                var jsonTest = JSON.parse(serverResponse);
-                console.log(jsonTest);
-                $("#response").text(jsonTest.firstName +" "+ jsonTest.lastName);
-            });
+        $(document).ready(function () {
+            $("#getChats").click(
+                function () {
+                    $.get("@Url.Action("TestJson","Chats")", function (serverResponse) {
+        var jsonTest = JSON.parse(serverResponse);
+        console.log(jsonTest);
+
+        //var ul = $("<ul>", { id: "messageList", "class": "bg-primary" });
+        //$("#response").append(ul);
+
+        $.each(jsonTest, function (inx, val) {
+            var userNameClass = ["userName"];
+            var h6 = $("<h6>", { id: "h6" + inx, "class": userNameClass });
+
+            var messageClass = ["message"];
+            var p = $("<p>", { id: "p" + inx, "class": messageClass });
+
+            var divClass = ["messageDiv"];
+            var div = $("<div>", { id: "div" + inx, "class": divClass });
+
+            h6.html("<h6 class=\"userName\">" + val.UserName + "</h6>");
+            p.html("<p class=\"message\">" + val.Message + "</p>");
+            div.html(h6.html()+p.html());
+            //html('<div')
+            //$("#postSection").html('<div class="messageDiv">')
+            $("#postSection").append(div);
+
+
+        });
+
+    });
+                });
+
         });
     </script>
 }
