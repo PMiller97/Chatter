@@ -28,9 +28,6 @@
         var jsonTest = JSON.parse(serverResponse);
         console.log(jsonTest);
 
-        //var ul = $("<ul>", { id: "messageList", "class": "bg-primary" });
-        //$("#response").append(ul);
-
         $.each(jsonTest, function (inx, val) {
             var userNameClass = ["userName"];
             var h6 = $("<h6>", { id: "h6" + inx, "class": userNameClass });
@@ -43,10 +40,10 @@
 
             h6.html("<h6 class=\"userName\">" + val.UserName + "</h6>");
             p.html("<p class=\"message\">" + val.Message + "</p>");
-            div.html(h6.html()+p.html());
-            //html('<div')
-            //$("#postSection").html('<div class="messageDiv">')
+            div.html(h6.html() + p.html());
+
             $("#postSection").append(div);
+            console.log(serverResponse);
 
 
         });
