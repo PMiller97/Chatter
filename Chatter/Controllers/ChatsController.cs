@@ -8,6 +8,7 @@ using System.Web;
 using System.Web.Mvc;
 using Chatter.Models;
 using Newtonsoft.Json;
+using Microsoft.AspNet.Identity;
 
 namespace Chatter.Controllers
 {
@@ -24,10 +25,67 @@ namespace Chatter.Controllers
 
         public JsonResult TestJson()
         {
-            string jsonTest = "{ \"firstName\": \"Bob\",\"lastName\": \"Sauce\", \"children\": [{\"firstName\": \"Barbie\", \"age\": 19 },{\"firstName\": \"Ron\", \"age\": null }] }";
+            //SQL Statment HERE(mine is not shown since this is part of //your project grade).
+            //            SELECT ChatID, UserName, Message, Date
+            //FROM Chat
+            //INNER JOIN AspNetUsers
+            //on UserID = AspNetUsers.Id;
+            //Now, the LINQ equivalent is declared as a variable(below).
 
-                return Json(jsonTest, JsonRequestBehavior.AllowGet);
+            var chats = from Chats in db.Chats
+                        join AspNetUsers in db.AspNetUsers on new { UserID = Chats.UserID } equals new { UserID = AspNetUsers.Id }
+                        orderby
+                        Chats.Date descending
+                        select new
+                        {
+                            AspNetUsers.UserName,
+                            Chats.Message,
+                        };
+
+            //var chats = from[NOT SHOWN PURPOSEFULLY] in db.Chats
+            //            orderby
+            // Chats.Timestamp[NOT SHOWN]
+            //select new
+            //{
+            //    Chats.Message,
+            //    Chats.AspNetUser.UserName
+            //};
+
+            //Next we serialize our data in the model to JSON(Newtonsoft //library at work). 
+            //FYI: the query isn’t run until you call the ToList() method.
+
+            var output = JsonConvert.SerializeObject(chats.ToList());
+
+            //Finally, we return Json to the view
+            return Json(output, JsonRequestBehavior.AllowGet);                                                              
+        }
+
+        public JsonResult PostChats([Bind(Include = "Message")] Chat chat)
+        {
+            //we need to fill out information for our model so we can easily insert it.
+
+            //We need the following for our model / db. The user, the message, and a timestamp.
+            //Since we're using entity framework, all of the Chat table's fields are in a C# model.
+            //We work through that (keeps everything in sync) and the model is what is used to update the database
+            //So it's a bit different than adding information directly to the database itself.
+
+            //We already have the message. It was passed to us via AJAX-> JSON vals from the View
+
+            //Let's add the Timestamp field's value
+            chat.Date = DateTime.Now;
+            //Now, since we have a foreign key join on the aspnetuser table, the 2 models in EF (AspNetUser and Chat) reference each other
+            // Because of this, we need to get a complete user object, not just the userID 
+            string currentUserId = User.Identity.GetUserId();
+            chat.AspNetUser = db.AspNetUsers.FirstOrDefault(x => x.Id == currentUserId);
+
+            if (ModelState.IsValid)
+            {
+                db.Chats.Add(chat);
+                db.SaveChanges();
             }
+            return new JsonResult() { Data = JsonConvert.SerializeObject(chat.ChatID), JsonRequestBehavior = JsonRequestBehavior.AllowGet };
+        }
+
 
 
         // GET: Chats/Details/5
